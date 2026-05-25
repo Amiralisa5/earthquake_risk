@@ -1,7 +1,11 @@
 """Run the full earthquake risk pipeline."""
 
+import logging
+
 import numpy as np
 import pandas as pd
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
 from config import MAX_DISTANCE_KM
 from risk.data_loader import load_model_data
