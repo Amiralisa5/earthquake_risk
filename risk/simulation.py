@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from config import MAX_DISTANCE_KM
 from risk.distance_calculator import calculate_distance
 from risk.earthquake_generator import (
     generate_location,
@@ -23,7 +24,7 @@ def hazard_run(
     site_ids,
     site_long,
     site_lat,
-    max_distance_km=200.0,
+    max_distance_km: float = MAX_DISTANCE_KM,
 ):
     number_earthquake = generate_number_eq(source_a, source_b, source_m_min)
     number_eq_per_iter = np.sum(number_earthquake)

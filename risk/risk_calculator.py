@@ -1,34 +1,35 @@
 """Vulnerability curves, thresholds, and monetary loss per site."""
 
+from functools import lru_cache
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 from config import VULNERABILITY_XLSX, VUL_THRESHOLD_CSV
 
-_vul_cache: dict | None = None
-_threshold_cache: dict | None = None
+
+@lru_cache(maxsize=4)
+def load_vulnerability_data(vul_path: Path = VULNERABILITY_XLSX) -> dict:
+    df = pd.read_excel(vul_path)
+    return {
+        "df": df,
+        "pga_vals": np.asarray(df["PGA"].values),
+    }
 
 
-def load_vulnerability_data(vul_path=VULNERABILITY_XLSX) -> dict:
-    global _vul_cache
-    if _vul_cache is None:
-        df = pd.read_excel(vul_path)
-        _vul_cache = {
-            "df": df,
-            "pga_vals": np.asarray(df["PGA"].values),
-        }
-    return _vul_cache
+@lru_cache(maxsize=4)
+def load_vul_thresholds(threshold_path: Path = VUL_THRESHOLD_CSV) -> dict:
+    df = pd.read_csv(threshold_path)
+    return df.iloc[0].to_dict()
 
 
-def load_vul_thresholds(threshold_path=VUL_THRESHOLD_CSV) -> dict:
-    global _threshold_cache
-    if _threshold_cache is None:
-        df = pd.read_csv(threshold_path)
-        _threshold_cache = df.iloc[0].to_dict()
-    return _threshold_cache
-
-
-def calculate_vul(pga_value, building_type, vul_data=None, thresholds=None):
+def calculate_vul(
+    pga_value: np.ndarray,
+    building_type: str,
+    vul_data: dict | None = None,
+    thresholds: dict | None = None,
+) -> np.ndarray:
     if vul_data is None:
         vul_data = load_vulnerability_data()
     if thresholds is None:
@@ -42,12 +43,22 @@ def calculate_vul(pga_value, building_type, vul_data=None, thresholds=None):
     return np.where(vul >= threshold, np.float32(1.0), vul)
 
 
-def calculate_risk(vul, number, price, area):
+def calculate_risk(
+    vul: np.ndarray,
+    number: np.ndarray,
+    price: np.ndarray,
+    area: np.ndarray,
+) -> np.ndarray:
     """Loss = vulnerability × unit count × unit price × unit area."""
     return vul * area * number * price
 
 
-def vulnerability_run(pga_value, building_type_list, vul_data=None, thresholds=None):
+def vulnerability_run(
+    pga_value: np.ndarray,
+    building_type_list: list[str],
+    vul_data: dict | None = None,
+    thresholds: dict | None = None,
+) -> dict[str, np.ndarray]:
     return {
         bt: calculate_vul(pga_value, bt, vul_data, thresholds)
         for bt in building_type_list
@@ -55,17 +66,17 @@ def vulnerability_run(pga_value, building_type_list, vul_data=None, thresholds=N
 
 
 def loss_run(
-    pga_value,
-    building_type_list,
-    num_units,
-    price_units,
-    area_units,
-    vul_data=None,
-    thresholds=None,
-):
-    vul = {}
-    loss = {}
-    loss_per_bt = {}
+    pga_value: np.ndarray,
+    building_type_list: list[str],
+    num_units: dict[str, np.ndarray],
+    price_units: dict[str, np.ndarray],
+    area_units: dict[str, np.ndarray],
+    vul_data: dict | None = None,
+    thresholds: dict | None = None,
+) -> tuple[dict, dict, dict, np.floating]:
+    vul: dict[str, np.ndarray] = {}
+    loss: dict[str, np.ndarray] = {}
+    loss_per_bt: dict[str, np.floating] = {}
     total_loss = np.float32(0.0)
 
     for bt in building_type_list:

@@ -6,7 +6,11 @@ import numpy as np
 from shapely.geometry import Point, Polygon
 
 
-def calculate_magnitude_distribution(m_min, m_max, b, num_points=500):
+def calculate_magnitude_distribution(
+    m_min: float, m_max: float, b: float, num_points: int = 500
+) -> tuple[np.ndarray, np.ndarray]:
+    """Gutenberg-Richter truncated CDF: F(m) = (1 - e^{-β(m-m_min)}) / (1 - e^{-β(m_max-m_min)})
+    where β = b·ln(10).  Returns magnitude array and corresponding CDF values."""
     beta = b * np.log(10)
     m = np.linspace(m_min, m_max, num_points)
     tmp1 = 1 - np.exp(-beta * (m - m_min))
@@ -32,16 +36,24 @@ def generate_magnitude(k, b, m_min, m_max):
     return y0 + (r - x0) * (y1 - y0) / (x1 - x0)
 
 
-def generate_location(polygon_points):
+def generate_location(
+    polygon_points: list[tuple[float, float]],
+    max_retries: int = 10_000,
+) -> tuple[float, float]:
     """Return a random (longitude, latitude) inside the fault polygon."""
     polygon = Polygon(polygon_points)
-    while True:
+    bounds = polygon.bounds  # (minx, miny, maxx, maxy)
+    for _ in range(max_retries):
         random_point = Point(
-            random.uniform(polygon.bounds[0], polygon.bounds[2]),
-            random.uniform(polygon.bounds[1], polygon.bounds[3]),
+            random.uniform(bounds[0], bounds[2]),
+            random.uniform(bounds[1], bounds[3]),
         )
         if polygon.contains(random_point):
             return random_point.x, random_point.y
+    raise RuntimeError(
+        f"Could not sample a point inside the fault polygon after {max_retries} attempts. "
+        "Check that the polygon geometry is valid and non-degenerate."
+    )
 
 
 def generate_earthquakes(model_data) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:

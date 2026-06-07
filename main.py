@@ -1,5 +1,4 @@
 """Run a single-iteration earthquake risk pipeline with logging."""
-
 import logging
 from typing import NamedTuple
 

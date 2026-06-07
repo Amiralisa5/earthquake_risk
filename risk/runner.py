@@ -3,12 +3,13 @@
 import os
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
+from typing import Literal
 
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from config import BUILDING_TYPES, RESULTS_DIR
+from config import RESULTS_DIR
 from risk.data_loader import load_model_data
 from risk.pga_calculator import load_gmpe_data
 from risk.risk_calculator import load_vul_thresholds, load_vulnerability_data
@@ -24,10 +25,10 @@ def make_cols(start_iter, count):
 
 
 def run_monte_carlo(
-    analysis_type="loss",
-    investigation_time=10,
-    block_size=10_000,
-):
+    analysis_type: Literal["hazard", "vul", "loss"] = "loss",
+    investigation_time: int = 10,
+    block_size: int = 10_000,
+) -> None:
     """
     Run parallel Monte Carlo iterations.
 
