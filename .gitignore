@@ -13,3 +13,10 @@ venv/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Model outputs (can grow to GB+)
+Results/
+
+# Large binary data files — do not commit to git
+*.mat
+*.xlsx

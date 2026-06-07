@@ -22,4 +22,10 @@ BUILDING_TYPES = ["SH", "SM", "SL", "CH", "CM", "CL", "MM", "ML"]
 
 MAX_DISTANCE_KM = 200.0
 
+# WGS-84 semi-major axis used in the Haversine formula
+EARTH_RADIUS_KM = 6378.137
+
+# Prevents division-by-zero in bilinear PGA interpolation when table cells are identical
+PGA_INTERP_EPSILON = 1e-6
+
 RESULTS_DIR = PROJECT_ROOT / "Results"
