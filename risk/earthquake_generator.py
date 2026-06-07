@@ -11,7 +11,7 @@ def calculate_magnitude_distribution(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Gutenberg-Richter truncated CDF: F(m) = (1 - e^{-β(m-m_min)}) / (1 - e^{-β(m_max-m_min)})
     where β = b·ln(10).  Returns magnitude array and corresponding CDF values."""
-    beta = b * np.log(10)
+    beta = b
     m = np.linspace(m_min, m_max, num_points)
     tmp1 = 1 - np.exp(-beta * (m - m_min))
     tmp2 = 1 - np.exp(-beta * (m_max - m_min))
