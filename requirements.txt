@@ -1,3 +1,4 @@
+# Requires Python >= 3.9 (see pyproject.toml / CI config for the enforced version)
 pandas>=3.0,<4.0
 numpy>=2.0,<3.0
 scipy>=1.10,<2.0
